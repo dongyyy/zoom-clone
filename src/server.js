@@ -24,10 +24,23 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
     sockets.push(socket)
+    socket["nickname"] = "Anon";
     console.log("Connected to Browser");
     socket.on("close", () => console.log("Disconnected from the Browser")); // 브라우저가 닫치면 close 발생시킴
-    socket.on("message", (message) => {
-        sockets.forEach(aSocket => {aSocket.send(message.toString('utf8'));})
+    socket.on("message", (msg) => {
+        const message = JSON.parse(msg);
+        switch(message.type){
+            case "new_message":
+                console.log(`message = ${message.payload}`)
+                sockets.forEach((aSocket) => 
+                    aSocket.send(`${socket.nickname}: ${message.payload}`)
+                );
+                break;  
+            case "nickname":
+                console.log(`nickname = ${message.payload}`)
+                socket["nickname"] = message.payload; // socket에는 새로운 아이템을 추가할 수 있다
+                break;
+        }
     });
 });
 
